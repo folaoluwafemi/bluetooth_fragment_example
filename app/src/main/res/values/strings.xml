@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">bluetooth_fragment</string>
+    <string name="fragment_client_label">Client Scan Page</string>
+    <string name="fragment_messages_label">Messages</string>
 </resources>

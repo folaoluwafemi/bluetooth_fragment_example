@@ -10,19 +10,17 @@ import android.content.pm.PackageManager
 import androidx.core.content.ContextCompat.getSystemService
 import com.google.android.material.internal.ContextUtils.getActivity
 
-class BluetoothSource(applicationContext: Context) {
-    private val context: Context
+class BluetoothSetup(applicationContext: Context) {
+    private val context: Context = applicationContext
 
-    init {
-        this.context = applicationContext
-    }
-
-    private val bluetoothManager: BluetoothManager = getSystemService(
+    @SuppressLint("NewApi")
+    val bluetoothManager: BluetoothManager = getSystemService(
         applicationContext,
         BluetoothManager::class.java
     )!!
-    private val bluetoothAdapter: BluetoothAdapter = bluetoothManager.adapter
 
+    @SuppressLint("NewApi")
+    private val bluetoothAdapter: BluetoothAdapter = bluetoothManager.adapter
 
     @SuppressLint("RestrictedApi", "MissingPermission")
     fun isBluetoothEnabled(): Boolean {
@@ -36,6 +34,7 @@ class BluetoothSource(applicationContext: Context) {
         return bluetoothAdapter.isEnabled
     }
 
+    @SuppressLint("NewApi")
     private fun hasPermission(permission: String): Boolean {
         return context.checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED
     }

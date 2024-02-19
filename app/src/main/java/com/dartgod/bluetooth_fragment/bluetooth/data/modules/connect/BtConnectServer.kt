@@ -7,6 +7,7 @@ import android.bluetooth.BluetoothServerSocket
 import android.bluetooth.BluetoothSocket
 import android.content.ContentValues.TAG
 import android.util.Log
+import com.dartgod.bluetooth_fragment.bluetooth.tools.BluetoothUtils
 import java.io.IOException
 import java.util.*
 
@@ -14,25 +15,31 @@ typealias OnConnectedListener = (BluetoothSocket?) -> Unit
 
 interface BtConnectServer {
     fun startServer()
+
     fun stopServer()
 
     fun getBluetoothSocket(): BluetoothSocket?
 
+    fun updateUuid(uuidSeed: String)
+
     fun setOnConnectedListener(listener: OnConnectedListener)
+
+    fun removeOnConnectedListener()
 }
 
-class PluginBtConnectServer(bluetoothManager_: BluetoothManager) :
-    BtConnectServer {
+@SuppressLint("NewApi")
+class PluginBtConnectServer(bluetoothManager_: BluetoothManager) : BtConnectServer {
     private val bluetoothAdapter: BluetoothAdapter = bluetoothManager_.adapter
     private val acceptor: AcceptThread = AcceptThread()
     private var _bluetoothSocket: BluetoothSocket? = null
     private var _onConnectedListener: OnConnectedListener? = null
+    private var uuid: UUID = BluetoothUtils.uuid
 
     @SuppressLint("HardwareIds")
-    private val publicName = "PfundBluetooth Receiver ${bluetoothAdapter.address}"
+    private val publicName = "PfundBluetooth Receiver:${bluetoothAdapter.address}"
 
-    companion object {
-        private val connectionUUID: UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
+    override fun updateUuid(uuidSeed: String) {
+        uuid = UUID.fromString(uuidSeed)
     }
 
     private fun manageMyConnectedSocket(
@@ -63,6 +70,10 @@ class PluginBtConnectServer(bluetoothManager_: BluetoothManager) :
         _onConnectedListener = listener
     }
 
+    override fun removeOnConnectedListener() {
+        _onConnectedListener = null
+    }
+
     override fun stopServer() {
         _onConnectedListener?.invoke(null)
         acceptor.cancel()
@@ -72,7 +83,9 @@ class PluginBtConnectServer(bluetoothManager_: BluetoothManager) :
     private inner class AcceptThread : Thread() {
 
         private val mmServerSocket: BluetoothServerSocket? by lazy(LazyThreadSafetyMode.NONE) {
-            bluetoothAdapter.listenUsingInsecureRfcommWithServiceRecord(publicName, connectionUUID)
+            bluetoothAdapter.listenUsingInsecureRfcommWithServiceRecord(
+                publicName, uuid
+            )
         }
 
         override fun run() {

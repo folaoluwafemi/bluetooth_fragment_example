@@ -12,7 +12,7 @@ import java.io.IOException
 import java.util.*
 
 interface ClientBtConnector {
-    fun connectTo(device: BluetoothDevice)
+    fun connectTo(deviceAddress: String)
 
     fun disconnect()
 
@@ -20,9 +20,12 @@ interface ClientBtConnector {
 
     fun setOnConnectedListener(listener: OnConnectedListener)
 
+    fun removeOnConnectedListener()
+
 }
 
 class PluginClientBtConnector(bluetoothManager_: BluetoothManager) : ClientBtConnector {
+    private val bluetoothManager: BluetoothManager = bluetoothManager_
     private val bluetoothAdapter: BluetoothAdapter = bluetoothManager_.adapter
     private lateinit var connector: PluginClientBtConnector.ConnectThread
     private var _bluetoothSocket: BluetoothSocket? = null
@@ -38,9 +41,10 @@ class PluginClientBtConnector(bluetoothManager_: BluetoothManager) : ClientBtCon
         _onConnectedListener?.invoke(socket)
     }
 
-    override fun connectTo(device: BluetoothDevice) {
+    override fun connectTo(deviceAddress: String) {
         try {
-            connector = ConnectThread(device)
+            val uuidStringValue: String = UUID.fromString(deviceAddress).toString()
+            connector = ConnectThread(uuidStringValue)
             connector.start()
         } catch (e: IllegalThreadStateException) {
             return
@@ -61,21 +65,35 @@ class PluginClientBtConnector(bluetoothManager_: BluetoothManager) : ClientBtCon
         _onConnectedListener = listener
     }
 
+    override fun removeOnConnectedListener() {
+        _onConnectedListener = null
+    }
+
     @SuppressLint("MissingPermission")
-    private inner class ConnectThread(device: BluetoothDevice) : Thread() {
+    private inner class ConnectThread(deviceAddress: String) : Thread() {
 
         private val mmSocket: BluetoothSocket? by lazy(LazyThreadSafetyMode.NONE) {
+            val device: BluetoothDevice =
+                bluetoothAdapter.bondedDevices.find { it.address == deviceAddress }
+                    ?: bluetoothAdapter.getRemoteDevice(deviceAddress)
             device.createRfcommSocketToServiceRecord(connectionUUID)
         }
 
         override fun run() {
-            bluetoothAdapter.cancelDiscovery()
+            try {
 
-            mmSocket?.let { socket ->
-                socket.connect()
+                bluetoothAdapter.cancelDiscovery()
 
-                // The connection attempt succeeded. Perform work associated with the connection in a separate thread.
-                manageMyConnectedSocket(socket)
+                mmSocket?.let { socket ->
+                    socket.connect()
+
+                    // The connection attempt succeeded. Perform work associated with the connection in a separate thread.
+                    manageMyConnectedSocket(socket)
+                }
+            } catch (e: Exception) {
+                Log.e(com.dartgod.bluetooth_fragment.bluetooth.tools.TAG, "An Exception occurred: $e");
+            } catch (e: Error) {
+                Log.e(com.dartgod.bluetooth_fragment.bluetooth.tools.TAG, "An error occurred: $e");
             }
         }
 

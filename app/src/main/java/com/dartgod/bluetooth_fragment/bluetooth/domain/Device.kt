@@ -12,6 +12,13 @@ data class PDevice(
     val isConnected: Boolean,
 )
 
+fun PDevice.toMap(): Map<String, Any> {
+    return mapOf(
+        "name" to name, "address" to address, "isPaired" to isPaired, "isConnected" to isConnected
+    )
+}
+
+
 @SuppressLint("MissingPermission")
 fun BluetoothDevice.toPDevice(): PDevice {
     return PDevice(
@@ -25,9 +32,6 @@ fun BluetoothDevice.toPDevice(): PDevice {
 @SuppressLint("MissingPermission", "HardwareIds")
 fun BluetoothAdapter.thisDevice(): PDevice {
     return PDevice(
-        name = this.name,
-        address = this.address,
-        isPaired = false,
-        isConnected = false
+        name = this.name, address = this.address, isPaired = false, isConnected = false
     )
 }

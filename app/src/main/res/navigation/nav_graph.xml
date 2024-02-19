@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph">
+    <fragment
+        android:id="@+id/clientFragment"
+        android:name="com.dartgod.bluetooth_fragment.ui.client.ClientFragment"
+        android:label="@string/fragment_client_label"
+        tools:layout="@layout/fragment_client_view">
+        <action
+            android:id="@+id/action_letterListFragment_to_wordListFragment"
+            app:destination="@id/messagesListFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/messagesListFragment"
+        android:name="com.dartgod.bluetooth_fragment.ui.messages.MessagesFragment"
+        android:label="@string/fragment_messages_label"
+        tools:layout="@layout/fragment_message_view" />
+
+</navigation>
